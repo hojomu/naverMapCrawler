@@ -17,7 +17,7 @@ url = 'https://map.naver.com/v5/search'
 driver = webdriver.Chrome('./chromedriver')  # 드라이버 경로
 # driver = webdriver.Chrome('./chromedriver',chrome_options=options) # 크롬창 숨기기
 driver.get(url)
-key_word = '오산 화실'  # 검색어
+key_word = '화성 미술관'  # 검색어
 
 # css 찾을때 까지 10초대기
 def time_wait(num, code):
@@ -48,20 +48,23 @@ time_wait(10, 'div.input_box > input.input_search')
 search = driver.find_element(By.CSS_SELECTOR, 'div.input_box > input.input_search')
 search.send_keys(key_word)  # 검색어 입력
 search.send_keys(Keys.ENTER)  # 엔터버튼 누르기
+print('검색완료')
 
-sleep(2)
+sleep(5)
 
 # (2) frame 변경
 switch_frame('searchIframe')
 page_down(40)
 sleep(3)
+print('프레임변경완료')
 
 # 주차장 리스트
 customer_list = driver.find_elements(By.CSS_SELECTOR, 'li.VLTHu')
 # 페이지 리스트
 next_btn_code = '.zRM9F > a'
 next_btn = driver.find_elements(By.CSS_SELECTOR, next_btn_code)
-
+for btns in next_btn:
+    print(btns.text)
 print('next_btn_lenght = ' , len(next_btn))
 
 # dictionary 생성
@@ -73,9 +76,10 @@ print('[크롤링 시작...]')
 # 크롤링 (페이지 리스트 만큼)
 for btn in range(len(next_btn))[1:]:  # next_btn[0] = 이전 페이지 버튼 무시 -> [1]부터 시작
     print('btn : ',btn)
-    customer_list = driver.find_elements(By.CSS_SELECTOR, 'li.VLTHu')
-    names = driver.find_elements(By.CSS_SELECTOR, '.YwYLL')  # (3) 장소명
-    detail_buttons = driver.find_elements(By.CSS_SELECTOR, '.ouxiq > a:first-child')
+    customer_list = driver.find_elements(By.CSS_SELECTOR, 'li.Ki6eC.YPAJV')
+    print(len(customer_list))
+    names = driver.find_elements(By.CSS_SELECTOR, '.YFsgn')  # (3) 장소명
+    detail_buttons = driver.find_elements(By.CSS_SELECTOR, 'a.u92d5')
 
     for data in range(len(customer_list)):  # 주차장 리스트 만큼
         print(data)
@@ -95,16 +99,17 @@ for btn in range(len(next_btn))[1:]:  # next_btn[0] = 이전 페이지 버튼 �
             # (5) 주소 버튼 누르기
             
             element = detail_buttons.__getitem__(data)
-
+            print('이름 클릭')
             element.click()
 
             # 로딩 기다리기
             sleep(1)
 
             switch_frame('entryIframe')
+            print('프레임변경완료')
             sleep(1)
             
-            address_buttons = driver.find_elements(By.CSS_SELECTOR, 'div.O8qbU.tQY7D > div > a')
+            address_buttons = driver.find_elements(By.CSS_SELECTOR, '.PkgBl')
             address_buttons.__getitem__(0).click()
             sleep(1)
 
@@ -121,7 +126,7 @@ for btn in range(len(next_btn))[1:]:  # next_btn[0] = 이전 페이지 버튼 �
                 phone = '-'
 
             try:
-                shopUrl_box = driver.find_elements(By.CSS_SELECTOR, '.CHmqa')
+                shopUrl_box = driver.find_elements(By.CSS_SELECTOR, 'div.jO09N > a:first-child')
                 shopUrl = shopUrl_box[0].text
             except:
                 shopUrl = '-'
@@ -166,6 +171,7 @@ for btn in range(len(next_btn))[1:]:  # next_btn[0] = 이전 페이지 버튼 �
 
         except Exception as e:
             print(e)
+            print('ERROR!' * 3)
 
             # dict에 데이터 집어넣기
             dict_temp = {
@@ -184,8 +190,8 @@ for btn in range(len(next_btn))[1:]:  # next_btn[0] = 이전 페이지 버튼 �
     switch_frame('searchIframe')
     sleep(1)
 
-    if not next_btn[-1].is_enabled():
-        break
+    # if not next_btn[-1].is_enabled():
+    #     break
 
     # if names[-1]:  # 마지막 주차장일 경우 다음버튼 클릭
     #     next_btn[-1].click()
@@ -194,15 +200,16 @@ for btn in range(len(next_btn))[1:]:  # next_btn[0] = 이전 페이지 버튼 �
 
     #     sleep(1)
 
-    if btn == len(next_btn)-2:
-        print('마지막 페이지')
-        break
+    # if btn == len(next_btn)-2:
+    #     print('마지막 페이지')
+    #     break
 
-    next_btn[-1].click()
-    sleep(3)
-    page_down(40)
+    # next_btn[-1].click()
+    # sleep(3)
+    # page_down(40)
 
-    sleep(2)
+    # sleep(2)
+    break
 
 # json 파일로 저장
 with open(f'{key_word}.json', 'w', encoding='utf-8') as f:
